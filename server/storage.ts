@@ -1,0 +1,218 @@
+import fs from "fs";
+import path from "path";
+
+export interface LedgerCustomer {
+  id: string;
+  name: string;
+  phone: string;
+  village: string;
+  creditLimit: number;
+  totalPurchased: number;
+  totalPaid: number;
+  outstandingDue: number;
+  lastTransactionDate: string;
+}
+
+export interface LedgerTransaction {
+  id: string;
+  customerId: string;
+  customerName: string;
+  crop: string;
+  quantityQuintals: number;
+  ratePerQuintal: number;
+  totalAmount: number;
+  paidAmount: number;
+  creditAmount: number;
+  status: "PAID" | "PARTIAL" | "CREDIT";
+  date: string;
+  notes?: string;
+}
+
+export interface InventoryItem {
+  id: string;
+  crop: string;
+  variety: string;
+  quantityQuintals: number;
+  harvestDate: string;
+  storageLocation: string;
+  minimumTargetPrice: number;
+}
+
+export interface LedgerStoreData {
+  customers: LedgerCustomer[];
+  transactions: LedgerTransaction[];
+  inventory: InventoryItem[];
+}
+
+const DEFAULT_CUSTOMERS: LedgerCustomer[] = [
+  {
+    id: "CUST-001",
+    name: "Ramesh Aggarwal (Wholesale Trading)",
+    phone: "+91 98765 43210",
+    village: "Azadpur Mandi, Delhi",
+    creditLimit: 150000,
+    totalPurchased: 240000,
+    totalPaid: 180000,
+    outstandingDue: 60000,
+    lastTransactionDate: "2025-02-18",
+  },
+  {
+    id: "CUST-002",
+    name: "Suresh Patel (Agro Fresh Exports)",
+    phone: "+91 94231 87654",
+    village: "Vashi APMC, Navi Mumbai",
+    creditLimit: 250000,
+    totalPurchased: 380000,
+    totalPaid: 355000,
+    outstandingDue: 25000,
+    lastTransactionDate: "2025-02-19",
+  },
+  {
+    id: "CUST-003",
+    name: "Harpal Singh (Karnal Grain Co.)",
+    phone: "+91 98120 55432",
+    village: "Karnal New Anaj Mandi",
+    creditLimit: 100000,
+    totalPurchased: 120000,
+    totalPaid: 120000,
+    outstandingDue: 0,
+    lastTransactionDate: "2025-02-15",
+  },
+  {
+    id: "CUST-004",
+    name: "Devendra Choudhary (Village Arhatiya)",
+    phone: "+91 97841 12390",
+    village: "Muhana Mandi, Jaipur",
+    creditLimit: 80000,
+    totalPurchased: 95000,
+    totalPaid: 50000,
+    outstandingDue: 45000,
+    lastTransactionDate: "2025-02-10",
+  },
+];
+
+const DEFAULT_TRANSACTIONS: LedgerTransaction[] = [
+  {
+    id: "TXN-8901",
+    customerId: "CUST-001",
+    customerName: "Ramesh Aggarwal (Wholesale Trading)",
+    crop: "Tomato (Hybrid Super)",
+    quantityQuintals: 30,
+    ratePerQuintal: 2550,
+    totalAmount: 76500,
+    paidAmount: 40000,
+    creditAmount: 36500,
+    status: "PARTIAL",
+    date: "2025-02-18",
+    notes: "Direct dispatch from Sonipat farm via mini truck. Advance received via UPI.",
+  },
+  {
+    id: "TXN-8902",
+    customerId: "CUST-002",
+    customerName: "Suresh Patel (Agro Fresh Exports)",
+    crop: "Onion (Nashik Red)",
+    quantityQuintals: 50,
+    ratePerQuintal: 2800,
+    totalAmount: 140000,
+    paidAmount: 140000,
+    creditAmount: 0,
+    status: "PAID",
+    date: "2025-02-19",
+    notes: "Export grade lot 1. Instant RTGS payment credited.",
+  },
+  {
+    id: "TXN-8903",
+    customerId: "CUST-004",
+    customerName: "Devendra Choudhary (Village Arhatiya)",
+    crop: "Mustard Seed (Pusa Bold)",
+    quantityQuintals: 15,
+    ratePerQuintal: 5400,
+    totalAmount: 81000,
+    paidAmount: 36000,
+    creditAmount: 45000,
+    status: "PARTIAL",
+    date: "2025-02-10",
+    notes: "Promise date: End of month after local mandi auction clearance.",
+  },
+];
+
+const DEFAULT_INVENTORY: InventoryItem[] = [
+  {
+    id: "INV-101",
+    crop: "Tomato (Hybrid Himsona)",
+    variety: "Himsona Red (Perishable)",
+    quantityQuintals: 45,
+    harvestDate: "2025-02-19",
+    storageLocation: "Cool Farm Packhouse (Shed A)",
+    minimumTargetPrice: 2400,
+  },
+  {
+    id: "INV-102",
+    crop: "Wheat (Sharbati Gold)",
+    variety: "HD-2967 Cleaned",
+    quantityQuintals: 120,
+    harvestDate: "2025-01-20",
+    storageLocation: "Dry Godown Bins (Moisture 10%)",
+    minimumTargetPrice: 2650,
+  },
+  {
+    id: "INV-103",
+    crop: "Onion (Nashik Red)",
+    variety: "Garwa Medium Globe",
+    quantityQuintals: 80,
+    harvestDate: "2025-02-05",
+    storageLocation: "Ventilated Storage Chawl",
+    minimumTargetPrice: 2750,
+  },
+  {
+    id: "INV-104",
+    crop: "Mustard Seed (Pusa Bold)",
+    variety: "High Oil 42%",
+    quantityQuintals: 35,
+    harvestDate: "2025-02-12",
+    storageLocation: "Jute Bag Stacks (Room 2)",
+    minimumTargetPrice: 5300,
+  },
+];
+
+const DATA_DIR = path.join(process.cwd(), "data");
+const STORE_PATH = path.join(DATA_DIR, "ledger_store.json");
+
+export function loadStore(): LedgerStoreData {
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    if (fs.existsSync(STORE_PATH)) {
+      const raw = fs.readFileSync(STORE_PATH, "utf-8");
+      const parsed = JSON.parse(raw);
+      return {
+        customers: parsed.customers || DEFAULT_CUSTOMERS,
+        transactions: parsed.transactions || DEFAULT_TRANSACTIONS,
+        inventory: parsed.inventory || DEFAULT_INVENTORY,
+      };
+    }
+  } catch (err) {
+    console.error("Warning: Failed to read persistent store, using initial seed:", err);
+  }
+
+  // Create initial store file
+  const initialData: LedgerStoreData = {
+    customers: DEFAULT_CUSTOMERS,
+    transactions: DEFAULT_TRANSACTIONS,
+    inventory: DEFAULT_INVENTORY,
+  };
+  saveStore(initialData);
+  return initialData;
+}
+
+export function saveStore(data: LedgerStoreData): void {
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    fs.writeFileSync(STORE_PATH, JSON.stringify(data, null, 2), "utf-8");
+  } catch (err) {
+    console.error("Warning: Failed to persist store to disk:", err);
+  }
+}
