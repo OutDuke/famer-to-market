@@ -1,0 +1,6 @@
+{
+  "name": "VrutiKisan",
+  "description": "VrutiKisan is an intelligent farmer-to-market decision platform empowering agricultural producers with real-time freight arbitrage, mandi price analytics, produce inventory khata, and agro-climatic sowing recommendations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

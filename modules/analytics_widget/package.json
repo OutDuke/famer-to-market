@@ -1,0 +1,22 @@
+{
+  "name": "@agri-modules/analytics-widget",
+  "version": "1.0.0",
+  "description": "Standalone React / Next.js Mandi Price Intelligence and 7-Day Volatility Recharts UI Widget",
+  "main": "AnalyticsWidget.tsx",
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0",
+    "recharts": ">=2.10.0",
+    "lucide-react": ">=0.300.0"
+  },
+  "keywords": [
+    "recharts",
+    "agriculture",
+    "mandi-rates",
+    "price-analytics",
+    "nextjs-widget",
+    "hackathon-module"
+  ],
+  "author": "Farmer Decision Platform Team",
+  "license": "MIT"
+}
